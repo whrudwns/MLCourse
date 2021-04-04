@@ -21,13 +21,15 @@ def fetch_spam_data(ham_url=HAM_URL, spam_url=SPAM_URL, spam_path=SPAM_PATH):
 
 fetch_spam_data()
 
-#load all the emails
+#####load all the emails
 HAM_DIR = os.path.join(SPAM_PATH, "easy_ham")
 SPAM_DIR = os.path.join(SPAM_PATH, "spam")
 ham_filenames = [name for name in sorted(os.listdir(HAM_DIR)) if len(name) > 20]
 spam_filenames = [name for name in sorted(os.listdir(SPAM_DIR)) if len(name) > 20]
+#len(ham_filenames)
+#len(spam_filenames)
 
-#parase these emails
+#####parase these emails
 import email
 import email.policy
 
@@ -37,8 +39,10 @@ def load_email(is_spam, filename, spam_path=SPAM_PATH):
         return email.parser.BytesParser(policy=email.policy.default).parse(f)
 ham_emails = [load_email(is_spam=False, filename=name) for name in ham_filenames]
 spam_emails = [load_email(is_spam=True, filename=name) for name in spam_filenames]
+#print(ham_emails[1].get_content().strip())
+#print(spam_emails[6].get_content().strip())
 
-#look at the various types of structures we have
+######look at the various types of structures we have
 def get_email_structure(email):
     if isinstance(email, str):
         return email
@@ -58,13 +62,16 @@ def structures_counter(emails):
         structure = get_email_structure(email)
         structures[structure] += 1
     return structures
+#structures_counter(ham_emails).most_common()
+#structures_counter(spam_emails).most_common()
 
-#look at the email header
+#####look at the email header
 for header, value in spam_emails[0].items():
     #print(header,":",value)
     pass
+#spam_emails[0]["Subject"]
 
-#split into training set and test set
+#####split into training set and test set
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -73,7 +80,7 @@ y = np.array([0] * len(ham_emails) + [1] * len(spam_emails))
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-#use regular expression
+#####use regular expression
 import re
 from html import unescape
 
@@ -88,8 +95,9 @@ html_spam_emails = [email for email in X_train[y_train==1]
                     if get_email_structure(email) == "text/html"]
 sample_html_spam = html_spam_emails[7]
 #print(sample_html_spam.get_content().strip()[:1000], "...")
+#print(html_to_plain_text(sample_html_spam.get_content())[:1000], "...")
 
-#write a function that takes an email as input and returns its content as plain text, whatever its format is
+#####write a function that takes an email as input and returns its content as plain text, whatever its format is
 def email_to_text(email):
     html = None
     for part in email.walk():
@@ -107,7 +115,7 @@ def email_to_text(email):
     if html:
         return html_to_plain_text(html)
 
-#use NLTK
+#####use NLTK
 try:
     import nltk
 
@@ -119,7 +127,7 @@ except ImportError:
     print("Error: stemming requires the NLTK module.")
     stemmer = None
     
-#use url
+#####use url
 try:   
     import urlextract # may require an Internet connection to download root domain names
     url_extractor = urlextract.URLExtract()
@@ -165,6 +173,9 @@ class EmailToWordCounterTransformer(BaseEstimator, TransformerMixin):
                 word_counts = stemmed_word_counts
             X_transformed.append(word_counts)
         return np.array(X_transformed)
+#X_few = X_train[:3]
+#X_few_wordcounts = EmailToWordCounterTransformer().fit_transform(X_few)
+#X_few_wordcounts
 
 from scipy.sparse import csr_matrix
 
@@ -190,7 +201,12 @@ class WordCounterToVectorTransformer(BaseEstimator, TransformerMixin):
                 data.append(count)
         return csr_matrix((data, (rows, cols)), shape=(len(X), self.vocabulary_size + 1))
 
-#transform the whole dataset **** lbfgs->liblinear *****
+#vocab_transformer = WordCounterToVectorTransformer(vocabulary_size=10)
+#X_few_vectors = vocab_transformer.fit_transform(X_few_wordcounts)
+#X_few_vectors
+#X_few_vectors.toarray()
+
+#####transform the whole dataset **** lbfgs->liblinear *****
 from sklearn.pipeline import Pipeline
 
 preprocess_pipeline = Pipeline([
@@ -207,7 +223,7 @@ log_clf = LogisticRegression(solver="liblinear", max_iter=1000, random_state=42)
 score = cross_val_score(log_clf, X_train_transformed, y_train, cv=3, verbose=3)
 #print(score.mean())
 
-#test set **** lbfgs->liblinear *****
+#####test set **** lbfgs->liblinear *****
 from sklearn.metrics import precision_score, recall_score
 
 X_test_transformed = preprocess_pipeline.transform(X_test)
@@ -218,10 +234,10 @@ log_clf.fit(X_train_transformed, y_train)
 y_pred = log_clf.predict(X_test_transformed)
 
 
-'''
-print("Precision: {:.2f}%".format(100 * precision_score(y_test, y_pred)))
-print("Recall: {:.2f}%".format(100 * recall_score(y_test, y_pred)))
-'''
+
+#print("Precision: {:.2f}%".format(100 * precision_score(y_test, y_pred)))
+#print("Recall: {:.2f}%".format(100 * recall_score(y_test, y_pred)))
+
 
 precison = 100 * precision_score(y_test, y_pred)
 recall = 100 * recall_score(y_test, y_pred)

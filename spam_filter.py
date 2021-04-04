@@ -126,6 +126,12 @@ try:
 except ImportError:
     print("Error: stemming requires the NLTK module.")
     stemmer = None
+
+try:
+    import google.colab
+    !pip install -q -U urlextract
+except ImportError:
+    pass # not running on Colab
     
 #####use url
 try:   

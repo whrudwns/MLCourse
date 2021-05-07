@@ -81,6 +81,7 @@ for rand in [10,100,1000,10000]:
     
     del voting_clf.estimators_[2]   
     
+    print("\n[validation]  hard voting_clif without SVM : ",voting_clf.score(X_val, y_val))
     
     voting_clf.voting = "soft"
     print("\n[validation]  soft voting_clif without SVM : ",voting_clf.score(X_val, y_val))

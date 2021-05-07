@@ -17,13 +17,14 @@ import numpy as np
 import numpy as np
 import os
 
+####fetch MNIST###
+from sklearn.datasets import fetch_openml
+mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+
 
 for rand in [10,100,1000,10000]:
     print("\n###### rand_seed and random_state = ",rand," ######\n")
     np.random.seed(rand)
-    ####fetch MNISST###
-    from sklearn.datasets import fetch_openml
-    mnist = fetch_openml('mnist_784', version=1, as_frame=False)
     
     
     ###divide data to train and test###
@@ -48,11 +49,14 @@ for rand in [10,100,1000,10000]:
     estimators = [random_forest_clf, extra_trees_clf, svm_clf, mlp_clf]
     for estimator in estimators:
         print("Training the", estimator)
+        s_time = time.time()
         estimator.fit(X_train, y_train)
+        e_time = time.time()
+        print("elapsed time : ", e_time - s_time,"\n")
     
     
     for estimator in estimators:
-        print("\n{} score : ".format(estimator), estimator.score(X_val, y_val))
+        print("\n{} validation score : ".format(estimator), estimator.score(X_val, y_val))
     
     ###ensemble###
     from sklearn.ensemble import VotingClassifier
@@ -63,9 +67,13 @@ for rand in [10,100,1000,10000]:
         ("mlp_clf", mlp_clf),
     ]
     voting_clf = VotingClassifier(named_estimators)
+    s_time = time.time()
     voting_clf.fit(X_train, y_train)
-    
-    print("\nhard voting_clf score : ",voting_clf.score(X_val, y_val))
+    e_time = time.time()
+    print("\n voting_clf training time : ",e_time - s_time)
+    print("\n[validation]  hard voting_clf score : ",voting_clf.score(X_val, y_val))
+
+    print("\n[test]  hard voting_clf score : ",voting_clf.score(X_test, y_test))
     
     ###remove SVM###
     voting_clf.set_params(svm_clf=None)
@@ -75,12 +83,12 @@ for rand in [10,100,1000,10000]:
     
     
     voting_clf.voting = "soft"
-    print("soft voting_clif without SVM : ",voting_clf.score(X_val, y_val))
+    print("\n[validation]  soft voting_clif without SVM : ",voting_clf.score(X_val, y_val))
     
     
     voting_clf.voting = "hard"
-    print("hard voting_clif without SVM : ",voting_clf.score(X_test, y_test))
+    print("\n[test]  hard voting_clif without SVM : ",voting_clf.score(X_test, y_test))
     
     end = time.time()
     
-    print("time elapsed(s) : ",(end-start))
+    print("\n total time elapsed(s) : ",(end-start))

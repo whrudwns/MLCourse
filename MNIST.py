@@ -75,11 +75,11 @@ for rand in [10,100,1000,10000]:
     
     
     voting_clf.voting = "soft"
-    print("soft voting_clif without SVM",voting_clf.score(X_val, y_val))
+    print("soft voting_clif without SV : M",voting_clf.score(X_val, y_val))
     
     
     voting_clf.voting = "hard"
-    print("hard voting_clif without SVM",voting_clf.score(X_test, y_test))
+    print("hard voting_clif without SVM : ",voting_clf.score(X_test, y_test))
     
     end = time.time()
     

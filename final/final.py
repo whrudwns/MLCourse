@@ -30,8 +30,6 @@ for jpeg in file_list:
 
 
 
-
-
 from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X_train, y_train,test_size=0.2,stratify = y_train, random_state=42)
@@ -40,12 +38,9 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.
 from sklearn.svm import LinearSVC
 
 svm_clf = LinearSVC(max_iter=1000, tol = 20 ,C = 0.000001,random_state=42)
-
-
 svm_clf.fit(X_train, y_train)
 
 from sklearn.model_selection import cross_val_score
 print("cross_val score : " ,cross_val_score(svm_clf, X_train, y_train, cv=5, scoring="accuracy").mean())
-
 print("test score : ",svm_clf.score(X_test, y_test))
 
